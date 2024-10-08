@@ -1,4 +1,5 @@
 import express from "express"
+import bcrypt from "bcrypt"
 import { Request ,Response } from "express"
 import { User } from "../model/user.model"
 import { UserID, UserModel } from "../types/model.type"
@@ -38,10 +39,14 @@ userRoute.post("/create" ,async(request: Request ,response: Response) => {
         role,
     }: UserModel = request.body
 
+    const salt = process.env.SALT_ENCRYPT || 0
+    
+    const enc_password = await bcrypt.hash(password , salt)
+
     try {
         const user = await User.create({
             user_username: username,
-            user_password: password,
+            user_password: enc_password,
             user_role: role,
             user_createAt: new Date()
         })
