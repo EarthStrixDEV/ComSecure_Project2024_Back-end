@@ -2,7 +2,7 @@ import express from "express"
 import bcrypt from "bcrypt"
 import { Request ,Response } from "express"
 import { User } from "../model/user.model"
-import { UserAuth } from "../types/model.type"
+import { UserAuth } from "../@types/model.type"
 import "dotenv/config"
 import {body ,validationResult } from "express-validator"
 
@@ -39,8 +39,8 @@ authRouter.post('/login', async(request: Request ,response: Response) => {
         return
     }
 
-    request.session.username = username
-    request.session.isAuthenticated = true
+    // request.session.username = username
+    // request.session.isAuthenticated = true
 
     response.json(user)
 })
@@ -107,8 +107,8 @@ authRouter.get('/session' ,async(request: Request ,response: Response) => {
     }
     
     response.status(200).json({
-        session_name: request.session.username,
-        session_auth: request.session.isAuthenticated
+        // session_name: request.session.username,
+        // session_auth: request.session.isAuthenticated
     })
 })
 

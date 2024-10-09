@@ -1,9 +1,63 @@
 import express from "express"
+import nodemailer, { Transporter } from "nodemailer"
 import { Request ,Response } from "express"
-import { User } from "../model/user.model"
+import { MailOptions } from "../@types/mail.type"
+import { join } from "path"
+import "dotenv/config"
 
 const mailRouter = express.Router()
+const transporter: Transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: true,
+    service: "gmail",
+    auth: {
+        user: process.env.MAIL_USERNAME,
+        pass: process.env.MAIL_PASSWORD
+    }  
+})
 
+mailRouter.post('/send', (request: Request ,response: Response) => {
+    const {
+        from,
+        to,
+        subject,
+        text,
+        html,
+        filename,
+        path
+    } = request.body
+
+    const mailOption: MailOptions = {
+        from,
+        to,
+        subject,
+        text,
+        html,
+        attachments: filename !== null || path !== null ? [
+            {
+                filename,
+                path: join(__dirname ,path)
+            }
+        ] : [{}]
+    }
+
+    transporter.sendMail(mailOption ,(error ,result) => {
+        if (error) {
+            console.log(error);
+            
+            response.status(500).json({
+                message: error
+            })
+            return
+        }
+
+        response.status(200).json({
+            mailOption,
+            message: "Send mail success."
+        })
+    })
+})
 
 
 export {mailRouter}

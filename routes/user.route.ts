@@ -2,7 +2,7 @@ import express from "express"
 import bcrypt from "bcrypt"
 import { Request ,Response } from "express"
 import { User } from "../model/user.model"
-import { UserID, UserModel } from "../types/model.type"
+import { UserID, UserModel } from "../@types/model.type"
 
 const userRoute = express.Router()
 
