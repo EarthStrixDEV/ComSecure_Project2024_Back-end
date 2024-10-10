@@ -5,8 +5,8 @@
 
 ## เทคโนโลยีที่ใช้
 * **Node.js:** รันไทม์สำหรับ JavaScript นอกเบราว์เซอร์
-* **TypeScript:** Superset ของ JavaScript ที่เพิ่มระบบการพิมพ์ (typing)
-* **Express.js:** Framework สำหรับสร้างเว็บแอปพลิเคชัน
+* **TypeScript:** Superset ของ JavaScript ที่เพิ่มการกำหนด Type
+* **Express.js:** Framework สำหรับสร้างเว็บแอปพลิเคชันฝั่งเซิฟเวอร์
 * **Sequelize:** ORM สำหรับ Node.js ใช้เชื่อมต่อกับฐานข้อมูล
 * **Bcrypt:** สำหรับการแฮชรหัสผ่านอย่างปลอดภัย
 * **Express-validator:** สำหรับการ validate ข้อมูล input
