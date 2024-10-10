@@ -44,8 +44,6 @@ mailRouter.post('/send', (request: Request ,response: Response) => {
 
     transporter.sendMail(mailOption ,(error ,result) => {
         if (error) {
-            console.log(error);
-            
             response.status(500).json({
                 message: error
             })
@@ -56,6 +54,22 @@ mailRouter.post('/send', (request: Request ,response: Response) => {
             mailOption,
             message: "Send mail success."
         })
+    })
+})
+
+mailRouter.post('/otp', (request: Request ,response: Response) => {
+    const {
+        from,
+        to,
+        subject,
+        text,
+        html
+    } = request.body
+
+    const random_int = Math.floor(Math.random() * 9000) + 1000
+
+    response.json({
+        otp: random_int,
     })
 })
 

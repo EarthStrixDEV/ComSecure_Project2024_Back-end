@@ -42,20 +42,22 @@ authRouter.post('/login', async(request: Request ,response: Response) => {
     // request.session.username = username
     // request.session.isAuthenticated = true
 
-    response.json(user)
+    response.status(200).json(user)
 })
 
 // Create a new user account
 authRouter.post('/create',
     [
         body('password').isLength({min: 8 ,max: 20}).withMessage('Password must be at least 8 characters and less more than 20 characters'),
-        body('password').isStrongPassword().withMessage('Password is not strong enough')
+        body('password').isStrongPassword().withMessage('Password is not strong enough'),
+        body('email').isEmail().withMessage('Email is not valid')
     ]
     ,async(request: Request ,response: Response) => {
     const {
+        email,
         username,
         password
-    }: UserAuth = request.body
+    } = request.body
     
     const validate_error = validationResult(request)
     if (!validate_error.isEmpty()) {
@@ -65,19 +67,15 @@ authRouter.post('/create',
         return
     }
 
-    const user = await User.findAll({
-        where: {
-            user_username: username
-        }
-    })
+    const user = await User.findAll()
 
     const checkDuplicateUsername = user.some((data: any) => (
-        username === data.user_username
+        username === data.user_username || email === data.user_email
     ))
 
     if (checkDuplicateUsername) {
         response.status(400).json({
-            message: "This username already exists"
+            message: "This username or email already exists"
         })
         return
     }
@@ -88,7 +86,8 @@ authRouter.post('/create',
         const createUser = await User.create({
             user_username: username,
             user_password: enc_password,
-            user_role: "Personal",
+            user_email: email,
+            user_role: false,
             user_createAt: new Date(),
         })
         response.sendStatus(200)
@@ -97,7 +96,7 @@ authRouter.post('/create',
     }
 })
 
-// session control
+// get session after sign in
 authRouter.get('/session' ,async(request: Request ,response: Response) => {
     if (!request.session) {
         response.status(400).json({

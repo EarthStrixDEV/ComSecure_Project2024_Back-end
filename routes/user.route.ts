@@ -31,32 +31,6 @@ userRoute.get("/:id" ,async(request: Request ,response: Response) => {
     }
 })
 
-// insert new user
-userRoute.post("/create" ,async(request: Request ,response: Response) => {
-    const {
-        username,
-        password,
-        role,
-    }: UserModel = request.body
-
-    const salt = process.env.SALT_ENCRYPT || 0
-    
-    const enc_password = await bcrypt.hash(password , salt)
-
-    try {
-        const user = await User.create({
-            user_username: username,
-            user_password: enc_password,
-            user_role: role,
-            user_createAt: new Date()
-        })
-        response.sendStatus(201)
-    } catch (error) {
-        console.error(error);
-        response.sendStatus(500)
-    }
-})
-
 // update user with user id
 userRoute.put("/:id" ,async(request: Request ,response: Response) => {
     const userId: UserID = parseInt(request.params.id)
@@ -64,13 +38,16 @@ userRoute.put("/:id" ,async(request: Request ,response: Response) => {
         username,
         password,
         role,
+        email
     }: UserModel = request.body
 
     try {
         const user = await User.update({
             user_username: username,
             user_password: password,
-            user_role: role
+            user_role: role,
+            user_email: email,
+            user_updateAt: new Date()
         }, {
             where: {
                 user_id: userId
@@ -78,6 +55,8 @@ userRoute.put("/:id" ,async(request: Request ,response: Response) => {
         })
         response.sendStatus(201)
     } catch (error) {
+        console.log(error);
+        
         response.sendStatus(500)
     }
 })

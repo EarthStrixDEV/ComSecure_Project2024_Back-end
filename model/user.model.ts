@@ -17,10 +17,18 @@ const User = sequelize.define('user', {
         allowNull: false,
     },
     user_role: {
+        type: DataType.BOOLEAN,
+        allowNull: false,
+    },
+    user_email: {
         type: DataType.TEXT,
         allowNull: false,
     },
     user_createAt: {
+        type: DataType.TIME,
+        allowNull: true,
+    },
+    user_updateAt: {
         type: DataType.TIME,
         allowNull: true,
     }

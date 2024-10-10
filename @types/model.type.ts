@@ -1,7 +1,8 @@
 export interface UserModel {
-    username: string;
+    username?: string;
     password: string;
-    role: string;
+    role?: boolean;
+    email?: string;
 }
 
 export interface UserAuth {
