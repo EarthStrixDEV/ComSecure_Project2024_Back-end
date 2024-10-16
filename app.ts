@@ -7,7 +7,6 @@ import "dotenv/config"
 import {sequelize} from "./database/db"
 import { userRoute } from "./routes/user.route"
 import { authRouter } from "./routes/auth.route"
-import { mailRouter } from "./routes/mail.route"
 
 const app:Application = express()
 const PORT = process.env.PORT_SERVER || 0
@@ -28,9 +27,14 @@ app.use(session({
 app.use(morgan('dev'))
 app.use(cors())
 
+app.get('/test', (request: Request ,response: Response) => {
+    response.json({
+        message: "Welcome."
+    })
+})
+
 app.use('/user', userRoute)
 app.use('/auth', authRouter)
-app.use('/mail', mailRouter)
 
 app.listen(PORT ,async() => {
     await sequelize.sync()
