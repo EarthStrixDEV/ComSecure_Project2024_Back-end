@@ -94,6 +94,7 @@ authRouter.post('/resetpassword', async(request: Request ,response: Response) =>
             const enc_password:string = await bcrypt.hash(newPassword ,12);
             await User.update({
                 password: enc_password,
+                expire_password: new Date(new Date().getTime() + 90 * 24 * 60 * 60 * 1000),
             }, { where: {
                 email: json_data.email
             }})
@@ -114,45 +115,53 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
         email,
         password
     }: UserAuth = request.body
-
-    const user = await User.findOne({
-        where: {
-            email: email,
+    try{
+        const user = await User.findOne({
+            where: {
+                email: email,
+            }
+        })
+    
+        if (!user) {
+            response.status(StatusCodes.BAD_REQUEST).json({
+                status: false,
+                message: "User not found."
+            })
+            return
         }
-    })
-
-    if (!user) {
-        response.status(StatusCodes.BAD_REQUEST).json({
-            message: "User not found."
-        })
-        return
-    }
-
-    const jsonUser = Object.create(user)
-
-    const verifyPassword = await bcrypt.compare(password, jsonUser.password)
-
-    if (!verifyPassword) {
-        response.status(StatusCodes.BAD_REQUEST).json({
-            message: "Invalid password."
-        })
-        return
-    }
-
-    if (new Date().getTime() > new Date(jsonUser.expire_password).getTime()) {
-        response.status(StatusCodes.BAD_REQUEST).json({
-            message: "Password expired."
-        })
-        return
-    }
-
-    if(SECRET_KEY){
-        const token = Jwt.sign({ email: email?.toString() }, SECRET_KEY, {
-            expiresIn: '2 days',
-          });
+    
+        const jsonUser = Object.create(user)
+    
+        const verifyPassword = await bcrypt.compare(password, jsonUser.password)
+    
+        if (!verifyPassword) {
+            response.status(StatusCodes.BAD_REQUEST).json({
+                status: false,
+                message: "Invalid password."
+            })
+            return
+        }
+    
+        if (new Date().getTime() > new Date(jsonUser.expire_password).getTime()) {
+            response.status(StatusCodes.BAD_REQUEST).json({
+                status: false,
+                message: "Password expired."
+            })
+            return
+        }
+    
+        if(SECRET_KEY){
+            const token = Jwt.sign({ email: email?.toString() }, SECRET_KEY, {
+                expiresIn: '2 days',
+              });
+            response.status(StatusCodes.OK).json({
+                token: token,
+                status: true,
+            })
+        }
+    }catch(error){
         response.status(StatusCodes.OK).json({
-            token: token,
-            status: true,
+            status: false,
         })
     }
 })
@@ -230,7 +239,7 @@ authRouter.post('/create',
 })
 
 // get session after sign in
-authRouter.get('/session' ,async(request: Request ,response: Response) => {
+authRouter.post('/session' ,async(request: Request ,response: Response) => {
     const {
         token
     } = request.body
@@ -239,17 +248,24 @@ authRouter.get('/session' ,async(request: Request ,response: Response) => {
             status: false
         })
     }else{
-        const decode: any = Jwt.verify(token, SECRET_KEY)
-        const user = await User.findOne({
-            where: {
-                email: decode.email
-            }
-        })
-        const json_data = Object.create(user)
-        response.status(StatusCodes.OK).json({
-            username: json_data.username,
-            status: false
-        })
+        try{
+            const decode: any = Jwt.verify(token, SECRET_KEY)
+            const user = await User.findOne({
+                where: {
+                    email: decode.email
+                }
+            })
+            const json_data = Object.create(user)
+            response.status(StatusCodes.OK).json({
+                username: json_data.username,
+                status: true
+            })
+        }catch(error){
+            response.status(StatusCodes.OK).json({
+                status: false,
+                error
+            })
+        }
     }
     // console.log(request.session?.username);
     
