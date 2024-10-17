@@ -1,4 +1,4 @@
-# โปรเจกต์ระบบหลังบ้าน: Node.js, TypeScript, Sequelize, Bcrypt, Express-validator, Nodemailer
+# โปรเจกต์ระบบหลังบ้าน: Hydrangea Project
 
 ## เกี่ยวกับโปรเจกต์
 โปรเจกต์นี้เป็นระบบหลังบ้านที่พัฒนาขึ้นเพื่อใช้ในวิชา Cyber Security โดยมีเป้าหมายในการสร้างเว็บแอปพลิเคชันที่ปลอดภัย โดยใช้เทคโนโลยีที่หลากหลาย เช่น TypeScript, Express.js, Sequelize, Bcrypt, Express-validator และ Nodemailer
