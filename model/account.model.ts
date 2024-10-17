@@ -23,6 +23,11 @@ const User = sequelize.define('account', {
       type: DataType.DATE,
       allowNull: true,
     },
+    loginFailure: {
+      type: DataType.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
     updated_at: {
       type: DataType.DATE,
       allowNull: false,
@@ -33,7 +38,7 @@ const User = sequelize.define('account', {
     },
     },
     {
-        timestamps: false,
+      timestamps: false,
     }
 )
 

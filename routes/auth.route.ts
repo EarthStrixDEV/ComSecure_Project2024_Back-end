@@ -90,6 +90,7 @@ authRouter.post('/resetpassword', async(request: Request ,response: Response) =>
             const json_data = Object.create(otp_username)
             const enc_password:string = await bcrypt.hash(newPassword ,12);
             await User.update({
+                loginFailure: 0,
                 password: enc_password,
                 expire_password: new Date(new Date().getTime() + 90 * 24 * 60 * 60 * 1000),
             }, { where: {
@@ -126,12 +127,27 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
             })
             return
         }
-    
+
         const jsonUser = Object.create(user)
     
         const verifyPassword = await bcrypt.compare(password, jsonUser.password)
+
+        if (jsonUser.loginFailure >= 5) {
+            response.status(StatusCodes.OK).json({
+                status: false,
+                message: "Login failure continuing 5 times"
+            })
+            return
+        }
     
         if (!verifyPassword) {
+            await User.update({
+                loginFailure: jsonUser.loginFailure + 1,
+            }, {
+                where: {
+                    email: jsonUser.email,
+                }
+            })
             response.status(StatusCodes.BAD_REQUEST).json({
                 status: false,
                 message: "Invalid password."
@@ -146,6 +162,14 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
             })
             return
         }
+
+        await User.update({
+            loginFailure: 0,
+        }, {
+            where: {
+                email: jsonUser.email,
+            }
+        })
     
         if(SECRET_KEY){
             const token = Jwt.sign({ email: email?.toString() }, SECRET_KEY, {
