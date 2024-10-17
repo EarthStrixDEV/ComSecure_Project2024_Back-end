@@ -3,12 +3,10 @@ import bcrypt from "bcrypt"
 import nodemailer, { Transporter } from "nodemailer"
 import otp_generator from "otp-generator"
 import { Request ,Response } from "express"
-import { MailOptions } from "../@types/mail.type"
-import { join } from "path"
 import { User } from "../model/account.model"
 import { UserAuth } from "../@types/model.type"
 import "dotenv/config"
-import {body ,Result,ValidationChain,ValidationError,validationResult } from "express-validator"
+import {body ,Result,ValidationError,validationResult } from "express-validator"
 import {v4 as uuidv4} from "uuid"
 
 import {loggingMid} from "../middleware/logging.middleware"
@@ -16,7 +14,6 @@ import { one_time_password } from "../model/one_time_password.model"
 import { otp_middleware } from "../middleware/otp.middleware"
 import { StatusCodes } from "http-status-codes"
 import Jwt from "jsonwebtoken"
-import { token } from "morgan"
 
 const authRouter = express.Router()
 const SECRET_KEY: string | undefined = process.env.SECRET
