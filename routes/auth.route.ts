@@ -67,8 +67,8 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
         return
     }
 
-    // request.session.username = username
-    // request.session.isAuthenticated = true
+    request.session.username = jsonUser.username
+    request.session.isAuthenticated = true
 
     response.status(StatusCodes.OK).json({
         email: jsonUser.email,
@@ -149,7 +149,9 @@ authRouter.post('/create',
 
 // get session after sign in
 authRouter.get('/session' ,async(request: Request ,response: Response) => {
-    if (!request.session) {
+    console.log(request.session?.username);
+    
+    /* if (!request.session) {
         response.status(StatusCodes.BAD_REQUEST).json({
             message: "Not existing session"
         })
@@ -157,9 +159,9 @@ authRouter.get('/session' ,async(request: Request ,response: Response) => {
     }
     
     response.status(StatusCodes.OK).json({
-        // session_name: request.session.username,
-        // session_auth: request.session.isAuthenticated
-    })
+        session_name: request.session.username,
+        session_auth: request.session.isAuthenticated
+    }) */
 })
 
 // logout (destroy session)
@@ -212,6 +214,17 @@ authRouter.post('/getOTP', async(request: Request ,response: Response) => {
             otp_number: otp,
             expire_otp: new Date(new Date().getTime() + 5 * 60 * 1000),
             created_id: new Date()
+        })
+
+        const getOTP = await one_time_password.findOne({
+            where: {email: email}
+        })
+
+        transporter.sendMail({
+            from: "warapon.jitsook@gmail.com",
+            to: email,
+            subject: "OTP From Hydrangea",
+            html: `<h1>OTP: ${otp}</h1>`
         })
 
         response.status(StatusCodes.OK).json({

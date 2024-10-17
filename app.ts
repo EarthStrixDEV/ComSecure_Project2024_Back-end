@@ -16,22 +16,15 @@ app.use(express.urlencoded({
     extended: true,
 }))
 app.use(session({
-    secret: "Natchalatte",
+    secret: "nutchalatte",
     resave: false,
     saveUninitialized: true,
     cookie: {
-        maxAge: 60000,
-        secure: false
+        maxAge: 120000,
     }
 }))
 app.use(morgan('dev'))
 app.use(cors())
-
-app.get('/test', (request: Request ,response: Response) => {
-    response.json({
-        message: "Welcome."
-    })
-})
 
 app.use('/user', userRoute)
 app.use('/auth', authRouter)
