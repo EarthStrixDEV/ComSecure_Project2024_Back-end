@@ -7,7 +7,7 @@ import "dotenv/config"
 import {sequelize} from "./database/db"
 import { userRoute } from "./routes/user.route"
 import { authRouter } from "./routes/auth.route"
-/* import { wordRouter } from "./routes/word.route" */
+import { wordRoute } from "./routes/word.route"
 
 const app:Application = express()
 const PORT = process.env.PORT_SERVER || 0
@@ -29,7 +29,7 @@ app.use(cors())
 
 app.use('/user', userRoute)
 app.use('/auth', authRouter)
-/* app.use('/word', wordRouter) */
+app.use('/word', wordRoute)
 
 app.listen(PORT ,async() => {
     await sequelize.sync()
