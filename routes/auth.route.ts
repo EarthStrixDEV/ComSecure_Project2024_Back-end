@@ -15,9 +15,11 @@ import {loggingMid} from "../middleware/logging.middleware"
 import { one_time_password } from "../model/one_time_password.model"
 import { otp_middleware } from "../middleware/otp.middleware"
 import { StatusCodes } from "http-status-codes"
+import Jwt from "jsonwebtoken"
+import { token } from "morgan"
 
 const authRouter = express.Router()
-
+const SECRET_KEY: string | undefined = process.env.SECRET
 const transporter: Transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -27,6 +29,83 @@ const transporter: Transporter = nodemailer.createTransport({
         user: process.env.MAIL_USERNAME,
         pass: process.env.MAIL_PASSWORD
     }  
+})
+
+authRouter.post('/resetpassword-otp-check', async(request: Request ,response: Response) => {
+try{
+    const {
+        otp,
+    } = request.body
+    if(SECRET_KEY){
+        const decode: any = Jwt.verify(otp, SECRET_KEY)
+        const otp_username = await one_time_password.findOne({
+            where: {
+                otp_number: decode.otp.toString()
+            }
+        })
+        const json_data = Object.create(otp_username)
+        response.status(StatusCodes.OK).json({
+            status: true
+        })
+    }
+}catch(error){
+    response.status(StatusCodes.OK).json({
+        status: false,
+        error
+    })
+}
+})
+
+authRouter.post('/resetpassword-otp', async(request: Request ,response: Response) => {
+    const {
+        otp,
+    } = request.body
+    if(SECRET_KEY){
+        const token = Jwt.sign({ otp: otp.toString() }, SECRET_KEY, {
+            expiresIn: '1 days',
+          });
+        response.status(StatusCodes.OK).json({
+            token: token,
+            status: true,
+        })
+    }
+})
+
+authRouter.post('/resetpassword', async(request: Request ,response: Response) => {
+    const {
+        otp,
+        newPassword,
+        confirmPassword
+    } = request.body
+    try{
+        if(newPassword != confirmPassword){
+            response.status(StatusCodes.OK).json({
+                status: false,
+            })
+        }
+        if(SECRET_KEY){
+            const decode: any = Jwt.verify(otp, SECRET_KEY)
+            const otp_username = await one_time_password.findOne({
+                where: {
+                    otp_number: decode.otp.toString()
+                }
+            })
+            const json_data = Object.create(otp_username)
+            const enc_password:string = await bcrypt.hash(newPassword ,12);
+            await User.update({
+                password: enc_password,
+            }, { where: {
+                email: json_data.email
+            }})
+            response.status(StatusCodes.OK).json({
+                status: true
+            })
+        }
+    }catch(error){
+        response.status(StatusCodes.OK).json({
+            status: false
+        })
+    }
 })
 
 // sign in with the user account
@@ -48,7 +127,7 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
         })
         return
     }
-    
+
     const jsonUser = Object.create(user)
 
     const verifyPassword = await bcrypt.compare(password, jsonUser.password)
@@ -67,14 +146,15 @@ authRouter.post('/login' ,loggingMid ,async(request: Request ,response: Response
         return
     }
 
-    request.session.username = jsonUser.username
-    request.session.isAuthenticated = true
-
-    response.status(StatusCodes.OK).json({
-        email: jsonUser.email,
-        status: true,
-        message: "Sign in successfully"
-    })
+    if(SECRET_KEY){
+        const token = Jwt.sign({ email: email?.toString() }, SECRET_KEY, {
+            expiresIn: '2 days',
+          });
+        response.status(StatusCodes.OK).json({
+            token: token,
+            status: true,
+        })
+    }
 })
 
 // Create a new user account
@@ -138,10 +218,12 @@ authRouter.post('/create',
             updated_at: new Date()
         })
         response.status(StatusCodes.OK).json({
+            status: true,
             message: "User created successfully"
         })
     } catch (error) {
         response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            status: false,
             message: "Error creating user"
         })
     }
@@ -149,7 +231,27 @@ authRouter.post('/create',
 
 // get session after sign in
 authRouter.get('/session' ,async(request: Request ,response: Response) => {
-    console.log(request.session?.username);
+    const {
+        token
+    } = request.body
+    if(!SECRET_KEY){
+        response.status(StatusCodes.OK).json({
+            status: false
+        })
+    }else{
+        const decode: any = Jwt.verify(token, SECRET_KEY)
+        const user = await User.findOne({
+            where: {
+                email: decode.email
+            }
+        })
+        const json_data = Object.create(user)
+        response.status(StatusCodes.OK).json({
+            username: json_data.username,
+            status: false
+        })
+    }
+    // console.log(request.session?.username);
     
     /* if (!request.session) {
         response.status(StatusCodes.BAD_REQUEST).json({
@@ -229,7 +331,7 @@ authRouter.post('/getOTP', async(request: Request ,response: Response) => {
 
         response.status(StatusCodes.OK).json({
             message: "Created OTP successfully",
-            otp: otp
+            // otp: otp
         })
     } catch (error) {
         response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

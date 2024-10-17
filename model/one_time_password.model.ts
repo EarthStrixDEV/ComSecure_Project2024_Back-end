@@ -16,7 +16,7 @@ const one_time_password = sequelize.define('one_time_password',{
         allowNull: false
     },
     expire_otp: {
-        type: DataType.TIME,
+        type: DataType.DATE,
         allowNull: false
     },
     created_at: {
