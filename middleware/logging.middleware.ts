@@ -7,32 +7,35 @@ import { User } from "../model/account.model"
 
 const loggingMid = async(request: Request ,response: Response ,next: NextFunction) => {
     const {
-        username,
+        email,
         password
     } = request.body
     
     const uuid:string = uuidv4()
+    let signin_status:boolean = false
+    let loggingMessage:string = ""
     
     try {
         const user = await User.findOne({
             where: {
-                username: username,
+                email: email,
             }
         })
-        
-        let signin_status:boolean = false
-        let loggingMessage:string = ""
         
         if (!user) {
             loggingMessage = "User not found."
         } else {
             var jsonUser = Object.create(user)
+
+            console.log("From logging middleware ",jsonUser);
         
             const verifyPassword = await bcrypt.compare(password, jsonUser.password)
         
             if (verifyPassword) {
-                signin_status = true
-                loggingMessage = "Sign in successfully."
+                if (new Date().getTime() < new Date(jsonUser.expire_password).getTime()) {
+                    signin_status = true
+                    loggingMessage = "Sign in successfully."
+                }
             } else {
                 loggingMessage = "Invalid password."
             }
